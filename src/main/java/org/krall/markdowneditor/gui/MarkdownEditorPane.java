@@ -52,10 +52,11 @@ public class MarkdownEditorPane extends StackPane {
     public void loadFile(Path path) throws IOException {
         byte[] bytes = Files.readAllBytes(path);
         textArea.setText(new String(bytes));
+        // TODO - Finish
     }
 
     public void saveFile(Path path) {
-
+        // TODO - Finish
     }
 
 }
