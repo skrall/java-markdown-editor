@@ -1,6 +1,5 @@
 language: java
-before_script:
-  - echo "The before script says the JAVA_HOME is $JAVA_HOME"
-  - cp $JAVA_HOME/jre/lib/jfxrt.jar $JAVA_HOME/jre/lib/ext
+before_install:
+  - echo "Copying jfxrt.jar" && cp /usr/lib/jvm/java-7-oracle/jre/lib/jfxrt.jar /usr/lib/jvm/java-7-oracle/jre/lib/ext
 jdk:
   - oraclejdk7
