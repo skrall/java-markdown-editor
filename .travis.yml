@@ -1,5 +1,5 @@
 language: java
 before_install:
-  - echo "Copying jfxrt.jar" && sudo cp /usr/lib/jvm/java-7-oracle/jre/lib/jfxrt.jar /usr/lib/jvm/java-7-oracle/jre/lib/ext
+  - sudo cp $JAVA_HOME/jre/lib/jfxrt.jar $JAVA_HOME/jre/lib/ext
 jdk:
   - oraclejdk7
