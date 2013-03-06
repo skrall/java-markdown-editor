@@ -23,6 +23,7 @@ public class MarkdownEditorPane extends StackPane {
     private final WebView webView = new WebView();
     private final PegDownProcessor pegDownProcessor = new PegDownProcessor(Extensions.HARDWRAPS | Extensions.AUTOLINKS |
                                                                            Extensions.FENCED_CODE_BLOCKS);
+    private Path file;
 
     public MarkdownEditorPane() {
         init();
@@ -49,14 +50,26 @@ public class MarkdownEditorPane extends StackPane {
         getChildren().add(splitPane);
     }
 
-    public void loadFile(Path path) throws IOException {
-        byte[] bytes = Files.readAllBytes(path);
-        textArea.setText(new String(bytes));
-        // TODO - Finish
+    public void loadFile(Path path) {
+        logger.info("Loading {}", path);
+
+        try {
+            byte[] bytes = Files.readAllBytes(path);
+            textArea.setText(new String(bytes));
+        } catch (IOException e) {
+            logger.error("Error while loading file.", e);
+            throw new RuntimeException(e);
+        }
     }
 
     public void saveFile(Path path) {
         // TODO - Finish
+        this.file = path;
+        logger.info("Saving {}", path);
+    }
+
+    public void save() {
+        logger.info("Save {}", file);
     }
 
 }
