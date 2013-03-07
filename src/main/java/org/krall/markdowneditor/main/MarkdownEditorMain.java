@@ -14,6 +14,9 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.DataFormat;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
@@ -46,6 +49,7 @@ public class MarkdownEditorMain extends Application {
     public void start(final Stage stage) throws Exception {
         stage.setTitle("Markdown Editor");
 
+        final Clipboard clipboard = Clipboard.getSystemClipboard();
         final TabPane tabPane = new TabPane();
 
         ClassLoader cl = getClass().getClassLoader();
@@ -58,10 +62,7 @@ public class MarkdownEditorMain extends Application {
         newMenuItem.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
-                Tab newTab = new Tab();
-                newTab.setText("Untitled");
-                newTab.setContent(new MarkdownEditorPane());
-                tabPane.getTabs().add(newTab);
+                tabPane.getTabs().add(MarkdownEditorMain.this.createTab());
             }
         });
 
@@ -93,6 +94,16 @@ public class MarkdownEditorMain extends Application {
         MenuItem saveAsMenuItem = new MenuItem("Save As",
                                                new ImageView(new Image(cl.getResourceAsStream("images/page_go.png"))));
         saveAsMenuItem.setAccelerator(KeyCombination.keyCombination("Shift+ShortCut+S"));
+        saveAsMenuItem.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                FileChooser chooser = new FileChooser();
+                File theFile = chooser.showSaveDialog(stage.getOwner());
+                if(theFile != null) {
+                    MarkdownEditorMain.this.getCurrentEditorPane().saveFile(theFile.toPath());
+                }
+            }
+        });
 
         SeparatorMenuItem separatorMenuItem = new SeparatorMenuItem();
 
@@ -112,10 +123,41 @@ public class MarkdownEditorMain extends Application {
 
         Menu editMenu = new Menu("Edit");
         MenuItem cutMenuItem = new MenuItem("Cut", new ImageView(new Image(cl.getResourceAsStream("images/cut.png"))));
+        cutMenuItem.setAccelerator(KeyCombination.keyCombination("ShortCut+X"));
+        cutMenuItem.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                String s = MarkdownEditorMain.this.getCurrentEditorPane().getAndRemoveSelectedText();
+                ClipboardContent content = new ClipboardContent();
+                content.putString(s);
+                clipboard.setContent(content);
+            }
+        });
+
         MenuItem copyMenuItem = new MenuItem("Copy",
                                              new ImageView(new Image(cl.getResourceAsStream("images/page_copy.png"))));
+        copyMenuItem.setAccelerator(KeyCombination.keyCombination("ShortCut+C"));
+        copyMenuItem.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                String s = MarkdownEditorMain.this.getCurrentEditorPane().getSelectedText();
+                ClipboardContent content = new ClipboardContent();
+                content.putString(s);
+                clipboard.setContent(content);
+            }
+        });
         MenuItem pasteMenuItem = new MenuItem("Paste", new ImageView(
                 new Image(cl.getResourceAsStream("images/page_paste.png"))));
+        pasteMenuItem.setAccelerator(KeyCombination.keyCombination("ShortCut+V"));
+        pasteMenuItem.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                if(clipboard.hasString()) {
+                    MarkdownEditorMain.this.getCurrentEditorPane().insertText((String)clipboard.getContent(DataFormat
+                                                                                                            .PLAIN_TEXT));
+                }
+            }
+        });
         MenuItem selectAllMenuItem = new MenuItem("Select All");
         editMenu.getItems().addAll(cutMenuItem, copyMenuItem, pasteMenuItem, selectAllMenuItem);
 
@@ -141,15 +183,19 @@ public class MarkdownEditorMain extends Application {
                 }
             }
         });
-        Tab tab = new Tab();
-        tab.setText("Untitled");
-        tab.setContent(new MarkdownEditorPane());
-        tabPane.getTabs().add(tab);
+        tabPane.getTabs().add(createTab());
 
         VBox vbox = new VBox();
         vbox.getChildren().add(menuBar);
         vbox.getChildren().add(tabPane);
         stage.setScene(new Scene(vbox, 800, 600));
         stage.show();
+    }
+
+    private Tab createTab() {
+        Tab tab = new Tab();
+        tab.setText("Untitled");
+        tab.setContent(new MarkdownEditorPane());
+        return tab;
     }
 }

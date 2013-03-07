@@ -10,19 +10,26 @@ import org.pegdown.PegDownProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 
 public class MarkdownEditorPane extends StackPane {
 
     private static final Logger logger = LoggerFactory.getLogger(MarkdownEditorPane.class);
 
     private final SplitPane splitPane = new SplitPane();
+
     private final TextArea textArea = new TextArea();
+
     private final WebView webView = new WebView();
+
     private final PegDownProcessor pegDownProcessor = new PegDownProcessor(Extensions.HARDWRAPS | Extensions.AUTOLINKS |
                                                                            Extensions.FENCED_CODE_BLOCKS);
+
     private Path file;
 
     public MarkdownEditorPane() {
@@ -37,7 +44,7 @@ public class MarkdownEditorPane extends StackPane {
 
             public void onChanged(Change<? extends CharSequence> change) {
                 StringBuilder markDownText = new StringBuilder();
-                for(CharSequence charSequence : change.getList()) {
+                for (CharSequence charSequence : change.getList()) {
                     markDownText.append(charSequence);
                     markDownText.append("\n");
                 }
@@ -63,13 +70,39 @@ public class MarkdownEditorPane extends StackPane {
     }
 
     public void saveFile(Path path) {
-        // TODO - Finish
-        this.file = path;
-        logger.info("Saving {}", path);
+        try {
+            this.file = path;
+            logger.info("Saving {}", path);
+            StringBuilder markDownText = new StringBuilder();
+            for (CharSequence charSequence : textArea.getParagraphs()) {
+                markDownText.append(charSequence);
+                markDownText.append("\n");
+            }
+            InputStream is = new ByteArrayInputStream(markDownText.toString().getBytes());
+            Files.copy(is, path, StandardCopyOption.REPLACE_EXISTING);
+        } catch (Exception e) {
+            logger.error("Error while writing file.", e);
+            throw new RuntimeException(e);
+        }
     }
 
     public void save() {
         logger.info("Save {}", file);
+        saveFile(file);
+    }
+
+    public String getSelectedText() {
+        return textArea.getSelectedText();
+    }
+
+    public String getAndRemoveSelectedText() {
+        String selectedText = textArea.getSelectedText();
+        textArea.deleteText(textArea.getSelection());
+        return selectedText;
+    }
+
+    public void insertText(String text) {
+        textArea.insertText(textArea.getCaretPosition(), text);
     }
 
 }
